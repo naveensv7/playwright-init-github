@@ -1,0 +1,37 @@
+name: Playwright Tests
+on:
+  push:
+    branches: ["main"]
+jobs:
+  playwright-test:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --ipc=host
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: node Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Playwright tests
+        run: npm run test example2.spec.js
+
+      - name: Generate Allure reports
+        run: |
+          npm run allure:generate
+
+      - name: Uploading as report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-report
+          path:
+          retention-days: 30
